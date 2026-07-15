@@ -234,6 +234,18 @@ export function deleteSession(id) {
   queueWrite(() => pool.query("DELETE FROM sessions WHERE id = $1", [id]));
 }
 
+// Auth sessions and OAuth tokens store a numeric expiresAt; agent
+// conversation histories are arrays and are never expired here.
+export function deleteExpiredSessions(now = Date.now()) {
+  const expired = [...sessions.entries()].filter(([, messages]) => {
+    const expiresAt = Number(messages?.expiresAt);
+    return Number.isFinite(expiresAt) && expiresAt < now;
+  }).map(([id]) => id);
+  for (const id of expired) sessions.delete(id);
+  if (expired.length) queueWrite(() => pool.query("DELETE FROM sessions WHERE id = ANY($1::text[])", [expired]));
+  return expired.length;
+}
+
 export function getToken(provider) {
   return tokens.get(provider) || null;
 }

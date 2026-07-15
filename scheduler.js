@@ -1,4 +1,4 @@
-import { getKV, setKV } from "./db.js";
+import { deleteExpiredSessions, getKV, setKV } from "./db.js";
 import { runBackup } from "./backup.js";
 import { withActor } from "./request-context.js";
 import * as eventbrite from "./integrations/eventbrite.js";
@@ -17,7 +17,7 @@ function isoWeek(date = new Date()) {
 
 export async function runScheduledOperations() {
   return withActor("system:scheduler", async () => {
-    const result = { weeklyReport: false, dailyDigest: false, eventbriteSync: false, backup: false };
+    const result = { weeklyReport: false, dailyDigest: false, eventbriteSync: false, backup: false, sessionSweep: false };
     try {
     // One report per ISO week. On sleeping free services, generate it on the
     // first scheduled wake or operator request instead of requiring Monday uptime.
@@ -39,6 +39,12 @@ export async function runScheduledOperations() {
       await eventbrite.syncTickets();
       setKV("scheduler:eventbrite", new Date().toISOString());
       result.eventbriteSync = true;
+    }
+    // Daily sweep of expired auth sessions and OAuth tokens that were never presented again.
+    if (getKV("scheduler:sessionSweep") !== today()) {
+      deleteExpiredSessions();
+      setKV("scheduler:sessionSweep", today());
+      result.sessionSweep = true;
     }
     if (process.env.BACKUP_DIR && getKV("scheduler:backup") !== today()) {
       await runBackup();

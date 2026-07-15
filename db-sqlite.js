@@ -60,6 +60,7 @@ const statements = {
   sessionGet: db.prepare("SELECT messages FROM sessions WHERE id = ?"),
   sessionSet: db.prepare("INSERT INTO sessions (id, messages, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET messages = excluded.messages, updated_at = excluded.updated_at"),
   sessionDelete: db.prepare("DELETE FROM sessions WHERE id = ?"),
+  sessionSweep: db.prepare("DELETE FROM sessions WHERE json_extract(messages, '$.expiresAt') < ?"),
   tokenGet: db.prepare("SELECT payload FROM tokens WHERE provider = ?"),
   tokenSet: db.prepare("INSERT INTO tokens (provider, payload) VALUES (?, ?) ON CONFLICT(provider) DO UPDATE SET payload = excluded.payload"),
   tokenDelete: db.prepare("DELETE FROM tokens WHERE provider = ?")
@@ -130,6 +131,12 @@ export function saveSession(id, messages) {
 
 export function deleteSession(id) {
   statements.sessionDelete.run(id);
+}
+
+// Auth sessions and OAuth tokens store an expiresAt timestamp; agent
+// conversation histories are arrays and json_extract returns NULL for them.
+export function deleteExpiredSessions(now = Date.now()) {
+  return statements.sessionSweep.run(now).changes;
 }
 
 export function getToken(provider) {

@@ -132,6 +132,8 @@ There is no email reset flow. If the dashboard password is lost, replace it in R
 
 The Blueprint must show a **Free** Node.js web service and no persistent disk. The source of durable data is Neon.
 
+Keep the service at exactly one instance (`numInstances: 1` in `render.yaml`). The PostgreSQL backend caches the whole database in one process and writes back asynchronously, so a second instance would not see the first instance's changes and could overwrite them. Do not scale this service horizontally.
+
 ## 6. Enter the Render environment variables
 
 Enter these values when the Blueprint requests them:

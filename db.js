@@ -17,6 +17,7 @@ export const markReverted = (...args) => backend.markReverted(...args);
 export const getSession = (...args) => backend.getSession(...args);
 export const saveSession = (...args) => backend.saveSession(...args);
 export const deleteSession = (...args) => backend.deleteSession(...args);
+export const deleteExpiredSessions = (...args) => backend.deleteExpiredSessions(...args);
 export const getToken = (...args) => backend.getToken(...args);
 export const saveToken = (...args) => backend.saveToken(...args);
 export const deleteToken = (...args) => backend.deleteToken(...args);

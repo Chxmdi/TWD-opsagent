@@ -513,6 +513,14 @@ function demoReply(message) {
   return "I cover the full Experience Operations Coordinator role: event logistics, run of show, volunteers, vendors, meetings, SOPs, attendee experience, feedback, budget guardrails, marketing, sponsors, and reports — plus Gmail/Calendar/Drive, Eventbrite, and Buffer once connected. Ask about any of these — live OpenAI research is off because no API key is set.";
 }
 
+// Keep stored histories bounded. Trim only at a user turn so tool calls and
+// their outputs are never separated from each other.
+function trimAgentHistory(history, max = 60) {
+  if (!Array.isArray(history) || history.length <= max) return history;
+  const from = history.findIndex((item, index) => index >= history.length - max && item.role === "user");
+  return from === -1 ? history : history.slice(from);
+}
+
 export async function runOperationsAgent(message, sessionId) {
   const key = sessionId ? `agent:${sessionId}` : null;
   if (!process.env.OPENAI_API_KEY) {
@@ -526,6 +534,6 @@ export async function runOperationsAgent(message, sessionId) {
   const history = (key && getSession(key)) || [];
   const input = [...history, { role: "user", content: message }];
   const result = await run(buildAgent(), input, { maxTurns: 16 });
-  if (key) saveSession(key, result.history);
+  if (key) saveSession(key, trimAgentHistory(result.history));
   return { mode: "live", reply: String(result.finalOutput || "No response generated.") };
 }

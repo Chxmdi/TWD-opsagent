@@ -1,7 +1,7 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { randomUUID, timingSafeEqual } from "node:crypto";
-import { dirname, extname, join, normalize } from "node:path";
+import { dirname, extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { runOperationsAgent } from "./agent.js";
@@ -126,7 +126,7 @@ function serveStatic(pathname, res) {
   const requested = pathname === "/" ? "/index.html" : pathname;
   const safe = normalize(requested).replace(/^(\.\.(\/|\\|$))+/, "");
   const file = join(publicDir, safe);
-  if (!file.startsWith(publicDir) || !existsSync(file) || !statSync(file).isFile()) return false;
+  if (!file.startsWith(publicDir + sep) || !existsSync(file) || !statSync(file).isFile()) return false;
   res.writeHead(200, { "content-type": mime[extname(file)] || "application/octet-stream", "cache-control": "no-cache" });
   createReadStream(file).pipe(res);
   return true;
@@ -210,6 +210,10 @@ function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "export";
 }
 
+function escapeIcs(value) {
+  return String(value ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+}
+
 function campaignToIcs(campaign) {
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Wealth Dojo Operations//EN"];
   for (const entry of campaign.contentCalendar) {
@@ -219,8 +223,8 @@ function campaignToIcs(campaign) {
       "BEGIN:VEVENT",
       `UID:${entry.id}@wealthdojo`,
       `DTSTART;VALUE=DATE:${date}`,
-      `SUMMARY:${entry.channel}: ${entry.title.replace(/[,;\\]/g, " ")}`,
-      `DESCRIPTION:Campaign ${campaign.name.replace(/[,;\\]/g, " ")} — status ${entry.status}`,
+      `SUMMARY:${escapeIcs(`${entry.channel}: ${entry.title}`)}`,
+      `DESCRIPTION:${escapeIcs(`Campaign ${campaign.name} — status ${entry.status}`)}`,
       "END:VEVENT"
     );
   }

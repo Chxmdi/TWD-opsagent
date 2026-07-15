@@ -51,11 +51,11 @@ export function validateConfiguration() {
     } catch {
       problems.push("DATABASE_URL must be a valid PostgreSQL connection URL");
     }
-    if (process.env.CRON_SECRET && process.env.CRON_SECRET.length < 32) problems.push("CRON_SECRET must contain at least 32 characters");
   } else {
     required("DB_PATH", problems);
     required("BACKUP_DIR", problems);
   }
+  if (process.env.CRON_SECRET && process.env.CRON_SECRET.length < 32) problems.push("CRON_SECRET must contain at least 32 characters");
   if (process.env.SINGLE_USER_EMAIL && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.SINGLE_USER_EMAIL.trim())) problems.push("SINGLE_USER_EMAIL must be a valid email address");
   if (process.env.SINGLE_USER_PASSWORD && process.env.SINGLE_USER_PASSWORD.length < 16) problems.push("SINGLE_USER_PASSWORD must contain at least 16 characters");
   if (process.env.OAUTH_SIGNING_SECRET && process.env.OAUTH_SIGNING_SECRET.length < 32) problems.push("OAUTH_SIGNING_SECRET must contain at least 32 characters");
