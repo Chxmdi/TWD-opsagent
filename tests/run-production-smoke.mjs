@@ -9,6 +9,7 @@ const appPort = 8796;
 const base = `http://127.0.0.1:${appPort}`;
 const email = "operator@wealthdojo.test";
 const password = "correct-horse-battery-staple";
+const cronSecret = "production-smoke-cron-secret-32-characters";
 const root = mkdtempSync(join(tmpdir(), "wealth-dojo-production-"));
 const dbPath = join(root, "operations.db");
 const backupDir = join(root, "backups");
@@ -26,7 +27,8 @@ const app = spawn(process.execPath, ["server.js"], {
     MCP_RESOURCE_URL: base,
     SINGLE_USER_EMAIL: email,
     SINGLE_USER_PASSWORD: password,
-    OAUTH_SIGNING_SECRET: "production-smoke-signing-secret-32-characters"
+    OAUTH_SIGNING_SECRET: "production-smoke-signing-secret-32-characters",
+    CRON_SECRET: cronSecret
   },
   stdio: ["ignore", "pipe", "pipe"]
 });
@@ -185,6 +187,12 @@ try {
   assert.equal(csrfDenied.status, 403);
   const csrfAllowed = await fetch(`${base}/api/tasks`, { method: "POST", headers: { cookie: sessionCookie, origin: base, "content-type": "application/json" }, body: JSON.stringify({ title: "Production test", area: "Operations", priority: "Low", due: "Tomorrow" }) });
   assert.equal(csrfAllowed.status, 201);
+
+  const schedulerDenied = await fetch(`${base}/internal/scheduler`, { method: "POST" });
+  assert.equal(schedulerDenied.status, 401);
+  const schedulerAllowed = await fetch(`${base}/internal/scheduler`, { method: "POST", headers: { authorization: `Bearer ${cronSecret}` } });
+  assert.equal(schedulerAllowed.status, 200);
+  assert.equal((await schedulerAllowed.json()).ok, true);
 
   const client = await registerClient();
   const insufficient = await authorize(client, "operations:read");
