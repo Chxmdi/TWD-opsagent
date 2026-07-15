@@ -5,6 +5,7 @@ import { dirname, extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { runOperationsAgent } from "./agent.js";
+import { contextSummary, refreshConnectedContext } from "./context-sync.js";
 import {
   authorizationServerMetadata,
   beginDashboardLogin,
@@ -30,6 +31,7 @@ import { runScheduledOperations, startScheduler } from "./scheduler.js";
 import * as buffer from "./integrations/buffer.js";
 import * as eventbrite from "./integrations/eventbrite.js";
 import * as google from "./integrations/google.js";
+import * as notion from "./integrations/notion.js";
 import {
   addCalendarEntry,
   buildSponsorPacket,
@@ -47,7 +49,7 @@ import {
   createRunOfShowSlot,
   createSponsor,
   createStrategy,
-  createTask,
+  createSyncedTask,
   createTouchpoint,
   createVendor,
   createVolunteer,
@@ -72,7 +74,7 @@ import {
   updateRunOfShowSlot,
   updateSponsor,
   updateStrategy,
-  updateTask,
+  updateSyncedTask,
   updateTouchpoint,
   updateVendor,
   updateVolunteer
@@ -249,7 +251,6 @@ async function sendDraft(collection, draftId, input) {
 }
 
 const resources = {
-  "/api/tasks": [createTask, updateTask],
   "/api/sponsors": [createSponsor, updateSponsor],
   "/api/outreach": [null, updateOutreachDraft],
   "/api/milestones": [createMilestone, updateMilestone],
@@ -271,9 +272,15 @@ const resources = {
 async function api(req, res, pathname) {
   if (req.method === "GET" && pathname === "/api/session") return json(res, 200, { user: req.authIdentity || null, mode: dashboardAuthConfigured() ? "single-user" : process.env.AUTH_TOKEN ? "token" : "open" });
   if (req.method === "GET" && pathname === "/api/state") return json(res, 200, readState());
+  if (req.method === "GET" && pathname === "/api/context") return json(res, 200, contextSummary());
+  if (req.method === "POST" && pathname === "/api/context/refresh") {
+    const input = await body(req);
+    await refreshConnectedContext({ force: input.force !== false });
+    return json(res, 200, contextSummary());
+  }
   if (req.method === "GET" && pathname === "/api/attention") return json(res, 200, getAttention());
   if (req.method === "GET" && pathname === "/api/integrations") {
-    return json(res, 200, { google: google.status(), eventbrite: eventbrite.status(), buffer: buffer.status(), auth: dashboardAuthConfigured() || Boolean(process.env.AUTH_TOKEN), authMode: dashboardAuthConfigured() ? "single-user" : process.env.AUTH_TOKEN ? "token" : "open" });
+    return json(res, 200, { google: google.status(), notion: notion.status(), eventbrite: eventbrite.status(), buffer: buffer.status(), context: { refreshedAt: contextSummary().refreshedAt, sources: contextSummary().sources }, auth: dashboardAuthConfigured() || Boolean(process.env.AUTH_TOKEN), authMode: dashboardAuthConfigured() ? "single-user" : process.env.AUTH_TOKEN ? "token" : "open" });
   }
   if (req.method === "PATCH" && pathname === "/api/event") return json(res, 200, updateEvent(await body(req)));
   if (req.method === "POST" && pathname === "/api/undo") return json(res, 200, undoLastChange());
@@ -286,6 +293,8 @@ async function api(req, res, pathname) {
   }
   if (req.method === "POST" && pathname === "/api/outreach/draft") return json(res, 201, createDraft(await body(req)));
   if (req.method === "POST" && pathname === "/api/comms/draft") return json(res, 201, createCommsDraft(await body(req)));
+  if (req.method === "POST" && pathname === "/api/tasks") return json(res, 201, await createSyncedTask(await body(req)));
+  if (req.method === "PATCH" && pathname.startsWith("/api/tasks/")) return json(res, 200, await updateSyncedTask(decodeURIComponent(pathname.slice("/api/tasks/".length)), await body(req)));
 
   for (const [route, [create, update]] of Object.entries(resources)) {
     if (req.method === "POST" && pathname === route && create) return json(res, 201, create(await body(req)));
