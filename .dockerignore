@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.*
+data/*.db
+data/*.db-*
+data/runtime.json
+backups
+.git
+.github
+npm-debug.log*
+*.zip
+.DS_Store
+__MACOSX

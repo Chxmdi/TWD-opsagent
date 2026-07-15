@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1d17">
+  <title>Wealth Dojo Operations</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#top" aria-label="Wealth Dojo Operations home"><span class="brand-mark">財</span><span>WEALTH<br><b>DOJO</b></span></a>
+      <nav aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview"><span>◈</span> Overview</button>
+        <button class="nav-item" data-view="tasks"><span>✓</span> Tasks</button>
+        <button class="nav-item" data-view="event"><span>⚑</span> Event</button>
+        <button class="nav-item" data-view="volunteers"><span>✼</span> Volunteers</button>
+        <button class="nav-item" data-view="vendors"><span>⬡</span> Vendors</button>
+        <button class="nav-item" data-view="meetings"><span>✎</span> Meetings</button>
+        <button class="nav-item" data-view="sponsors"><span>◇</span> Sponsors</button>
+        <button class="nav-item" data-view="outreach"><span>↗</span> Outreach</button>
+        <button class="nav-item" data-view="marketing"><span>✦</span> Marketing</button>
+        <button class="nav-item" data-view="attendees"><span>☺</span> Attendees</button>
+        <button class="nav-item" data-view="docs"><span>▤</span> Docs</button>
+        <button class="nav-item" data-view="reports"><span>▥</span> Reports</button>
+      </nav>
+      <div class="sidebar-foot"><span class="status-dot"></span><span><b>Internal workspace</b><small>Approval-gated sending</small></span></div>
+    </aside>
+
+    <main id="top">
+      <header class="topbar">
+        <div><p class="eyebrow">EVENT COMMAND CENTRE</p><h1>Good afternoon, Chimdi.</h1><p class="subtle">Here’s what needs your attention for The Wealth Dojo Experience | RESET.</p></div>
+        <button class="agent-toggle" id="agent-toggle"><span class="pulse"></span> Ask Operations Agent</button>
+      </header>
+
+      <section class="view active" id="view-overview">
+        <div id="attention-banner"></div>
+        <div class="hero-grid">
+          <article class="focus-card">
+            <div class="card-kicker">TODAY’S FOCUS <span>01</span></div>
+            <h2>Turn sponsor research into conversations.</h2>
+            <p>Verify the top Calgary leads, finish the audience profile, and prepare the first outreach batch for approval.</p>
+            <div class="focus-actions"><button class="primary" data-go="sponsors">Open sponsor pipeline <span>→</span></button><button class="secondary" id="create-report">Generate report</button></div>
+          </article>
+          <article class="event-card">
+            <div class="ring" id="ticket-ring"><span id="ticket-percent">15%</span></div>
+            <div><p class="card-kicker">TICKET MOMENTUM</p><h3 id="ticket-count">38 of 250</h3><p class="subtle">Early campaign baseline</p><span class="trend">↑ Build awareness next</span></div>
+          </article>
+        </div>
+
+        <div class="metrics" id="metrics"></div>
+
+        <div class="content-grid">
+          <article class="panel priority-panel">
+            <div class="panel-head"><div><p class="card-kicker">PRIORITY QUEUE</p><h2>What needs you now</h2></div><button class="text-button" data-go="tasks">View all →</button></div>
+            <div id="priority-list" class="priority-list"></div>
+          </article>
+          <article class="panel activity-panel">
+            <div class="panel-head"><div><p class="card-kicker">LIVE LOG</p><h2>Recent activity</h2></div><button class="text-button" id="undo-last">↺ Undo last</button></div>
+            <div id="activity-list" class="activity-list"></div>
+          </article>
+        </div>
+
+        <article class="panel pipeline-panel">
+          <div class="panel-head"><div><p class="card-kicker">PARTNERSHIP PIPELINE</p><h2>Calgary sponsor momentum</h2></div><button class="text-button" data-go="sponsors">Manage pipeline →</button></div>
+          <div id="pipeline-strip" class="pipeline-strip"></div>
+        </article>
+
+        <article class="panel pipeline-panel">
+          <div class="panel-head"><div><p class="card-kicker">CONNECTIONS</p><h2>Integrations</h2></div></div>
+          <div id="integrations-panel" class="integrations"></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-tasks">
+        <div class="section-head"><div><p class="eyebrow">EXECUTION</p><h2>Task board</h2><p class="subtle">Keep the operation moving without losing the thread.</p></div><button class="primary" id="add-task">+ Add task</button></div>
+        <div class="kanban" id="kanban"></div>
+      </section>
+
+      <section class="view" id="view-event">
+        <div class="section-head"><div><p class="eyebrow">EVENT OPERATIONS</p><h2>Logistics command</h2><p class="subtle">Milestones, checklist, budget, and the event-day run of show — September 26, 2026.</p></div></div>
+        <article class="panel"><div class="panel-head"><div><p class="card-kicker">TIMELINE</p><h2>Milestones</h2></div></div><div id="milestone-list" class="milestone-list"></div></article>
+        <div class="content-grid" style="margin-top:18px">
+          <article class="panel"><div class="panel-head"><div><p class="card-kicker">CHECKLIST</p><h2>Logistics</h2></div></div><div id="logistics-list"></div></article>
+          <article class="panel"><div class="panel-head"><div><p class="card-kicker">CAD</p><h2>Budget</h2></div><span id="budget-warning"></span></div><div id="budget-list"></div></article>
+        </div>
+        <article class="panel" style="margin-top:18px">
+          <div class="panel-head"><div><p class="card-kicker">EVENT DAY</p><h2>Run of show</h2></div><div class="head-actions"><button class="text-button" id="add-slot">+ Add slot</button><button class="text-button" id="shift-plan">Generate shift plan →</button></div></div>
+          <div id="ros-conflicts"></div>
+          <div id="ros-list"></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-volunteers">
+        <div class="section-head"><div><p class="eyebrow">TEAM</p><h2>Volunteer roster</h2><p class="subtle">Move everyone to event-ready before the Sep 12 training. Messages are approval-gated.</p></div></div>
+        <div class="sponsor-table" id="volunteer-table"></div>
+        <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">APPROVAL GATE</p><h2>Volunteer comms drafts</h2></div></div>
+        <div id="volunteer-comms" class="outreach-list"></div>
+      </section>
+
+      <section class="view" id="view-vendors">
+        <div class="section-head"><div><p class="eyebrow">SUPPLIERS</p><h2>Vendor pipeline</h2><p class="subtle">Bookings and spending are commitments — confirm with a person first.</p></div></div>
+        <div class="sponsor-table" id="vendor-table"></div>
+      </section>
+
+      <section class="view" id="view-meetings">
+        <div class="section-head"><div><p class="eyebrow">COORDINATION</p><h2>Meetings</h2><p class="subtle">Agendas, notes, and follow-up action items — convert them into tracked tasks.</p></div></div>
+        <div id="meeting-list" class="report-list"></div>
+      </section>
+
+      <section class="view" id="view-sponsors">
+        <div class="section-head"><div><p class="eyebrow">PARTNERSHIPS</p><h2>Sponsor pipeline</h2><p class="subtle">Seed leads are clearly marked until live research verifies them.</p></div><div class="head-actions"><button class="secondary dark" id="sponsor-packet">Generate packet</button><button class="primary" id="research-sponsors">Research with agent</button></div></div>
+        <div class="sponsor-table" id="sponsor-table"></div>
+      </section>
+
+      <section class="view" id="view-outreach">
+        <div class="section-head"><div><p class="eyebrow">APPROVAL GATE</p><h2>Outreach drafts</h2><p class="subtle">Edit, approve, then send with Gmail — or mark as sent manually. Nothing sends without your approval.</p></div></div>
+        <div id="outreach-list" class="outreach-list"></div>
+      </section>
+
+      <section class="view" id="view-marketing">
+        <div class="section-head"><div><p class="eyebrow">GROWTH</p><h2>Marketing</h2><p class="subtle">Strategies, campaigns, and the content calendar — export to .ics/.csv or queue in Buffer.</p></div><button class="primary" id="plan-campaign">Plan with agent</button></div>
+        <div id="strategy-list" class="report-list"></div>
+        <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">EXECUTION</p><h2>Campaigns</h2></div></div>
+        <div id="campaign-list" class="report-list"></div>
+      </section>
+
+      <section class="view" id="view-attendees">
+        <div class="section-head"><div><p class="eyebrow">EXPERIENCE</p><h2>Attendee journey</h2><p class="subtle">Every touchpoint before, during, and after the event.</p></div></div>
+        <div class="kanban journey" id="journey-board"></div>
+        <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">LISTENING</p><h2>Feedback</h2><p class="subtle">Log what you hear; the agent analyzes themes and files improvements.</p></div></div>
+        <article class="panel">
+          <form id="feedback-form" class="feedback-form">
+            <select name="source"><option>Attendee</option><option>Volunteer</option><option>Partner</option><option>Vendor</option></select>
+            <select name="phase"><option>Before</option><option>During</option><option selected>After</option></select>
+            <select name="rating"><option value="5">5 — Excellent</option><option value="4" selected>4 — Good</option><option value="3">3 — Okay</option><option value="2">2 — Poor</option><option value="1">1 — Bad</option></select>
+            <input name="comment" placeholder="What did they say?" required minlength="2">
+            <button class="primary" type="submit">Log</button>
+          </form>
+          <div id="feedback-list"></div>
+        </article>
+        <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">APPROVAL GATE</p><h2>Attendee comms drafts</h2></div></div>
+        <div id="attendee-comms" class="outreach-list"></div>
+      </section>
+
+      <section class="view" id="view-docs">
+        <div class="section-head"><div><p class="eyebrow">KNOWLEDGE BASE</p><h2>Documents &amp; SOPs</h2><p class="subtle">Download as markdown or export to Google Drive once connected.</p></div></div>
+        <div id="document-list" class="report-list"></div>
+        <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">CONTINUOUS IMPROVEMENT</p><h2>Improvement backlog</h2></div></div>
+        <article class="panel" id="improvement-list"></article>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="section-head"><div><p class="eyebrow">REPORTING</p><h2>Event reports</h2><p class="subtle">Turn live operations data into a clear weekly update. Monday reports generate automatically.</p></div><button class="primary" id="generate-report">Generate weekly report</button></div>
+        <div id="report-list" class="report-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="agent-panel" id="agent-panel" aria-hidden="true">
+    <div class="agent-head"><div><span class="pulse"></span><span><b>Operations Agent</b><small id="agent-mode">Demo mode</small></span></div><div class="head-actions"><button class="text-button light" id="agent-new">New chat</button><button id="agent-close" aria-label="Close">×</button></div></div>
+    <div class="agent-intro"><p class="card-kicker">BUILT FOR THE WEALTH DOJO</p><h2>What should we move forward?</h2><p>I remember this conversation. I cover logistics, run of show, volunteers, vendors, meetings, docs, feedback, marketing, sponsors, and reports.</p></div>
+    <div class="suggestions">
+      <button>What needs my attention today?</button>
+      <button>Build a marketing campaign for RESET</button>
+      <button>Check the run of show for conflicts</button>
+      <button>Prepare the next planning meeting agenda</button>
+      <button>What’s the volunteer onboarding status?</button>
+      <button>Prepare this week’s report</button>
+    </div>
+    <div class="messages" id="messages"></div>
+    <form id="agent-form"><textarea id="agent-input" rows="2" placeholder="Ask about logistics, volunteers, vendors, meetings, marketing, or reports…"></textarea><button type="submit">Send →</button></form>
+  </aside>
+
+  <dialog id="task-dialog">
+    <form method="dialog" id="task-form"><div class="dialog-head"><h2>Add a task</h2><button value="cancel">×</button></div><label>Task title<input name="title" required minlength="2"></label><div class="form-row"><label>Area<select name="area"><option>Marketing</option><option>Partnerships</option><option>Reporting</option><option>Operations</option><option>Logistics</option><option>Volunteers</option><option>Vendors</option><option>Attendee Experience</option></select></label><label>Priority<select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></label></div><label>Due<input name="due" value="This week"></label><button class="primary" value="submit">Create task</button></form>
+  </dialog>
+
+  <dialog id="slot-dialog">
+    <form method="dialog" id="slot-form"><div class="dialog-head"><h2>Add run-of-show slot</h2><button value="cancel">×</button></div><div class="form-row"><label>Start<input name="start" value="09:00" required pattern="\d{1,2}:\d{2}"></label><label>End<input name="end" value="10:00" required pattern="\d{1,2}:\d{2}"></label></div><label>Segment<input name="segment" required minlength="2"></label><div class="form-row"><label>Owner<input name="owner" value="Chimdi"></label><label>Location<input name="location" value="Main hall"></label></div><label>Notes<input name="notes"></label><button class="primary" value="submit">Add slot</button></form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

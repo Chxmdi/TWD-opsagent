@@ -1,0 +1,146 @@
+{
+  "event": {
+    "name": "The Wealth Dojo Experience | RESET",
+    "city": "Calgary",
+    "date": "2026-09-26",
+    "status": "Planning",
+    "ticketGoal": 250,
+    "ticketsSold": 38
+  },
+  "tasks": [
+    { "id": "task-1", "title": "Research the target audience for The Wealth Dojo Experience", "area": "Marketing", "priority": "High", "status": "In progress", "due": "This week" },
+    { "id": "task-2", "title": "Develop the event marketing strategy", "area": "Marketing", "priority": "High", "status": "To do", "due": "This week" },
+    { "id": "task-3", "title": "Identify the most effective marketing channels", "area": "Marketing", "priority": "Medium", "status": "To do", "due": "This week" },
+    { "id": "task-4", "title": "Research Calgary sponsors and community partners", "area": "Partnerships", "priority": "High", "status": "In progress", "due": "Today" },
+    { "id": "task-5", "title": "Create sponsor outreach templates", "area": "Partnerships", "priority": "High", "status": "To do", "due": "Tomorrow" },
+    { "id": "task-6", "title": "Outline campaign success metrics", "area": "Reporting", "priority": "Medium", "status": "To do", "due": "Friday" },
+    { "id": "task-7", "title": "Confirm catering quote with Prairie Catering Co.", "area": "Vendors", "priority": "High", "status": "To do", "due": "This week" },
+    { "id": "task-8", "title": "Draft the volunteer onboarding guide", "area": "Volunteers", "priority": "Medium", "status": "To do", "due": "Next week" }
+  ],
+  "sponsors": [
+    { "id": "sponsor-1", "name": "ATB Financial", "sector": "Financial services", "fit": 94, "stage": "Research", "contact": "Community investment team", "reason": "Strong Alberta presence and financial literacy alignment", "source": "Seed lead — verify before outreach" },
+    { "id": "sponsor-2", "name": "Servus Credit Union", "sector": "Credit union", "fit": 91, "stage": "Research", "contact": "Community engagement team", "reason": "Local member focus and community education potential", "source": "Seed lead — verify before outreach" },
+    { "id": "sponsor-3", "name": "Calgary Black Chambers", "sector": "Business network", "fit": 89, "stage": "Qualified", "contact": "Partnerships team", "reason": "Direct audience and entrepreneur-community alignment", "source": "Seed lead — verify before outreach" },
+    { "id": "sponsor-4", "name": "Momentum", "sector": "Community development", "fit": 87, "stage": "Research", "contact": "Partnerships team", "reason": "Financial empowerment and economic inclusion alignment", "source": "Seed lead — verify before outreach" },
+    { "id": "sponsor-5", "name": "RBC Royal Bank", "sector": "Financial services", "fit": 82, "stage": "Research", "contact": "Regional community manager", "reason": "Financial education programming and national brand reach", "source": "Seed lead — verify before outreach" }
+  ],
+  "outreach": [
+    { "id": "draft-1", "sponsorId": "sponsor-3", "sponsor": "Calgary Black Chambers", "subject": "Partnership opportunity: The Wealth Dojo Experience", "body": "Hello Calgary Black Chambers team,\n\nThe Wealth Dojo Experience is bringing practical wealth-building education and community connection to Calgary. Because of your work supporting Black professionals and entrepreneurs, we see a strong opportunity to collaborate on audience reach, programming, or event partnership.\n\nWould you be open to a short conversation about alignment and possible involvement?\n\nBest regards,\nThe Wealth Dojo Team", "status": "Needs approval", "updatedAt": "2026-07-14T16:00:00.000Z" }
+  ],
+  "milestones": [
+    { "id": "milestone-1", "title": "Venue confirmed and contract signed", "phase": "Planning", "due": "2026-07-20", "owner": "Chimdi", "status": "In progress", "notes": "Two venue options shortlisted; final walkthrough pending." },
+    { "id": "milestone-2", "title": "Sponsor commitments locked", "phase": "Planning", "due": "2026-08-14", "owner": "Chisom", "status": "Not started", "notes": "Target three committed sponsors." },
+    { "id": "milestone-3", "title": "Finalize run-of-show and speaker lineup", "phase": "Pre-event", "due": "2026-08-28", "owner": "Chimdi", "status": "Not started", "notes": "" },
+    { "id": "milestone-4", "title": "Volunteer training session", "phase": "Pre-event", "due": "2026-09-12", "owner": "Chimdi", "status": "Not started", "notes": "All volunteers must be onboarded first." },
+    { "id": "milestone-5", "title": "Event day — The Wealth Dojo Experience | RESET", "phase": "Event day", "due": "2026-09-26", "owner": "Team", "status": "Not started", "notes": "" },
+    { "id": "milestone-6", "title": "Post-event debrief, thank-yous, and report", "phase": "Post-event", "due": "2026-10-02", "owner": "Chimdi", "status": "Not started", "notes": "Includes feedback survey results and improvement log." }
+  ],
+  "logistics": [
+    { "id": "logistics-1", "item": "Venue rental agreement", "category": "Venue", "status": "Sourcing", "owner": "Chimdi", "due": "2026-07-20", "notes": "Comparing two community halls in the Beltline." },
+    { "id": "logistics-2", "item": "AV and sound system", "category": "AV", "status": "Sourcing", "owner": "Chimdi", "due": "2026-08-15", "notes": "Waiting on Stampede City AV quote." },
+    { "id": "logistics-3", "item": "Catering for 250 guests", "category": "Catering", "status": "Needed", "owner": "Chimdi", "due": "2026-08-20", "notes": "Quote received from Prairie Catering Co." },
+    { "id": "logistics-4", "item": "Signage and wayfinding package", "category": "Signage", "status": "Needed", "owner": "Chimdi", "due": "2026-09-05", "notes": "" },
+    { "id": "logistics-5", "item": "Registration desk materials", "category": "Materials", "status": "Needed", "owner": "Chimdi", "due": "2026-09-15", "notes": "Badges, lanyards, check-in tablets." }
+  ],
+  "budget": [
+    { "id": "budget-1", "item": "Venue rental", "category": "Venue", "planned": 3500, "actual": 0, "status": "Planned", "notes": "" },
+    { "id": "budget-2", "item": "Catering", "category": "Catering", "planned": 2800, "actual": 0, "status": "Planned", "notes": "Prairie Catering Co. quote pending confirmation." },
+    { "id": "budget-3", "item": "AV production", "category": "AV", "planned": 1500, "actual": 0, "status": "Planned", "notes": "" },
+    { "id": "budget-4", "item": "Marketing and promotion", "category": "Marketing", "planned": 1200, "actual": 350, "status": "Committed", "notes": "Initial social media boost spend." },
+    { "id": "budget-5", "item": "Volunteer appreciation", "category": "Volunteers", "planned": 400, "actual": 0, "status": "Planned", "notes": "" }
+  ],
+  "volunteers": [
+    { "id": "volunteer-1", "name": "Amara Nwosu", "role": "Registration lead", "stage": "Onboarded", "contact": "Provided during application — internal only", "shift": "Event day 8:00–14:00", "notes": "Has prior event registration experience." },
+    { "id": "volunteer-2", "name": "Daniel Osei", "role": "AV support", "stage": "Interviewed", "contact": "Provided during application — internal only", "shift": "Unassigned", "notes": "Available full event day." },
+    { "id": "volunteer-3", "name": "Grace Adeyemi", "role": "Guest experience", "stage": "Applied", "contact": "Provided during application — internal only", "shift": "Unassigned", "notes": "" },
+    { "id": "volunteer-4", "name": "Kevin Zhang", "role": "Logistics runner", "stage": "Scheduled", "contact": "Provided during application — internal only", "shift": "Event day 7:00–13:00", "notes": "" }
+  ],
+  "vendors": [
+    { "id": "vendor-1", "name": "Prairie Catering Co.", "category": "Catering", "status": "Quote received", "cost": 2800, "deliverables": "Lunch and refreshments for 250 guests", "contact": "Events desk — verify before booking", "notes": "Quote valid until Aug 1." },
+    { "id": "vendor-2", "name": "Stampede City AV", "category": "AV production", "status": "Contacted", "cost": 0, "deliverables": "Stage, sound, projection, two technicians", "contact": "Bookings inbox — verify before booking", "notes": "Quote requested Jul 12." },
+    { "id": "vendor-3", "name": "SwiftPrint Calgary", "category": "Printing and signage", "status": "Research", "cost": 0, "deliverables": "Banners, badges, wayfinding signs", "contact": "Contact not identified", "notes": "" },
+    { "id": "vendor-4", "name": "Bloom & Bough", "category": "Decor", "status": "Research", "cost": 0, "deliverables": "Stage and entrance decor", "contact": "Contact not identified", "notes": "Nice-to-have if budget allows." }
+  ],
+  "meetings": [
+    {
+      "id": "meeting-1",
+      "title": "Weekly planning sync",
+      "date": "2026-07-13",
+      "attendees": ["Chisom Mbaegbu", "Chimdindu Okelekwe"],
+      "agenda": ["Venue shortlist review", "Sponsor pipeline status", "Volunteer recruitment progress", "Marketing kickoff"],
+      "notes": "Venue walkthroughs booked for this week. Sponsor outreach templates due before first contact wave. Marketing strategy draft to start once audience research lands.",
+      "actionItems": [
+        { "id": "action-1", "text": "Confirm catering quote with Prairie Catering Co.", "owner": "Chimdi", "due": "This week", "converted": false },
+        { "id": "action-2", "text": "Draft the volunteer onboarding guide", "owner": "Chimdi", "due": "Next week", "converted": false },
+        { "id": "action-3", "text": "Shortlist AV vendors and request quotes", "owner": "Chisom", "due": "This week", "converted": false }
+      ]
+    }
+  ],
+  "documents": [
+    { "id": "document-1", "title": "Volunteer onboarding SOP", "category": "SOP", "version": 1, "updatedAt": "2026-07-14T16:00:00.000Z", "body": "# Volunteer onboarding SOP\n\n## Purpose\nGive every volunteer a consistent path from application to event-day readiness.\n\n## Steps\n1. Review application and confirm availability.\n2. Hold a 15-minute intro call and record the outcome.\n3. Send the welcome pack (draft-only until approved).\n4. Assign a role and shift.\n5. Confirm attendance at the training session on Sep 12.\n\n## Owner\nExperience Operations Coordinator." },
+    { "id": "document-2", "title": "Event day run-of-show template", "category": "Template", "version": 1, "updatedAt": "2026-07-14T16:00:00.000Z", "body": "# Run-of-show template\n\n| Time | Segment | Owner | Notes |\n|---|---|---|---|\n| 08:00 | Volunteer arrival and briefing | Coordinator | |\n| 09:00 | Doors open, registration | Registration lead | |\n| 10:00 | Opening keynote | Founder | |\n| 12:00 | Lunch and networking | Catering | |\n| 13:00 | Workshops | Speakers | |\n| 16:00 | Closing and thank-yous | Founder | |\n| 17:00 | Teardown | All volunteers | |" },
+    { "id": "document-3", "title": "Sponsor outreach process", "category": "Process", "version": 1, "updatedAt": "2026-07-14T16:00:00.000Z", "body": "# Sponsor outreach process\n\n1. Research and verify the organization with at least one cited source.\n2. Score fit and add to the pipeline at the Research stage.\n3. Draft outreach — every draft is approval-gated and never auto-sent.\n4. After human approval and sending, move the sponsor to Contacted.\n5. Log every interaction in the pipeline notes." }
+  ],
+  "attendeeTouchpoints": [
+    { "id": "touchpoint-1", "phase": "Before", "title": "Ticket confirmation email", "description": "Instant confirmation with event details and calendar link.", "channel": "Email", "owner": "Chimdi", "status": "Ready" },
+    { "id": "touchpoint-2", "phase": "Before", "title": "Know-before-you-go guide", "description": "Parking, schedule, what to bring — sent one week out.", "channel": "Email", "owner": "Chimdi", "status": "Planned" },
+    { "id": "touchpoint-3", "phase": "During", "title": "Welcome and registration experience", "description": "Fast check-in, welcome signage, volunteer greeters.", "channel": "In person", "owner": "Registration lead", "status": "Planned" },
+    { "id": "touchpoint-4", "phase": "During", "title": "Live session feedback pulse", "description": "QR-code micro-survey between sessions.", "channel": "In person", "owner": "Chimdi", "status": "Planned" },
+    { "id": "touchpoint-5", "phase": "After", "title": "Thank-you and recap email", "description": "Highlights, photos, and next steps within 48 hours.", "channel": "Email", "owner": "Chimdi", "status": "Planned" },
+    { "id": "touchpoint-6", "phase": "After", "title": "Post-event feedback survey", "description": "Full survey feeding the improvement backlog.", "channel": "Email", "owner": "Chimdi", "status": "Planned" }
+  ],
+  "improvements": [
+    { "id": "improvement-1", "idea": "Centralize all event documents in one shared drive structure", "area": "Documentation", "impact": "High", "status": "Proposed" },
+    { "id": "improvement-2", "idea": "Automate volunteer shift reminders 48 hours before the event", "area": "Volunteers", "impact": "Medium", "status": "Proposed" }
+  ],
+  "strategies": [
+    {
+      "id": "strategy-1",
+      "title": "RESET launch strategy",
+      "audience": "Calgary professionals aged 24–40 interested in financial literacy, entrepreneurship, and community — with emphasis on Black and newcomer communities.",
+      "positioning": "The Wealth Dojo Experience | RESET is Calgary's practical, community-rooted wealth-building day: real tools, real conversations, no jargon.",
+      "channels": ["Instagram", "Eventbrite", "Community partner networks", "Email"],
+      "budget": 1200,
+      "kpis": ["250 tickets sold", "1,500 Instagram profile visits", "20% email open-to-click rate", "3 committed community partners"],
+      "status": "Draft",
+      "summary": "Lead with partner networks and Instagram storytelling for awareness, convert through Eventbrite and email nurture, and use early-bird urgency in the final four weeks.",
+      "createdAt": "2026-07-14T16:00:00.000Z"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "campaign-1",
+      "name": "Early-bird ticket push",
+      "strategyId": "strategy-1",
+      "channel": "Instagram + Email",
+      "objective": "Sell the first 100 tickets before Aug 15 with early-bird pricing.",
+      "startDate": "2026-07-20",
+      "endDate": "2026-08-15",
+      "status": "Planned",
+      "budget": 500,
+      "metrics": "Tickets sold, link clicks, cost per ticket",
+      "contentCalendar": [
+        { "id": "content-1", "date": "2026-07-21", "channel": "Instagram", "title": "Announcement reel: What is RESET?", "status": "Idea" },
+        { "id": "content-2", "date": "2026-07-24", "channel": "Email", "title": "Early-bird launch email to community list", "status": "Idea" },
+        { "id": "content-3", "date": "2026-07-28", "channel": "Instagram", "title": "Speaker spotlight carousel", "status": "Idea" }
+      ]
+    }
+  ],
+  "runOfShow": [
+    { "id": "ros-1", "start": "08:00", "end": "09:00", "segment": "Volunteer arrival and briefing", "owner": "Chimdi", "location": "Main hall", "notes": "" },
+    { "id": "ros-2", "start": "09:00", "end": "10:00", "segment": "Doors open and registration", "owner": "Amara Nwosu", "location": "Lobby", "notes": "" },
+    { "id": "ros-3", "start": "10:00", "end": "12:00", "segment": "Opening keynote", "owner": "Chisom Mbaegbu", "location": "Main hall", "notes": "" },
+    { "id": "ros-4", "start": "12:00", "end": "13:00", "segment": "Lunch and networking", "owner": "Prairie Catering Co.", "location": "Dining area", "notes": "" },
+    { "id": "ros-5", "start": "13:00", "end": "16:00", "segment": "Workshops", "owner": "Speakers", "location": "Breakout rooms", "notes": "" },
+    { "id": "ros-6", "start": "16:00", "end": "17:00", "segment": "Closing and thank-yous", "owner": "Chisom Mbaegbu", "location": "Main hall", "notes": "" },
+    { "id": "ros-7", "start": "17:00", "end": "18:00", "segment": "Teardown", "owner": "Kevin Zhang", "location": "All areas", "notes": "" }
+  ],
+  "feedback": [],
+  "commsDrafts": [
+    { "id": "comms-1", "audience": "Volunteer", "recipient": "Amara Nwosu", "subject": "Welcome to The Wealth Dojo Experience team", "body": "Hi Amara,\n\nWelcome to the RESET volunteer team! You are confirmed as our Registration lead.\n\nNext steps:\n- Review the volunteer onboarding guide (attached).\n- Save the date: training session Sep 12, event day Sep 26.\n- Reply to confirm your shift: 8:00–14:00 on event day.\n\nThank you for helping us build this experience.\n\nThe Wealth Dojo Team", "status": "Needs approval", "updatedAt": "2026-07-14T16:00:00.000Z" }
+  ],
+  "reports": [],
+  "activity": [
+    { "id": "activity-1", "type": "system", "text": "Operations workspace initialized", "at": "2026-07-14T16:00:00.000Z" }
+  ]
+}
