@@ -14,6 +14,10 @@ const attention = await fetch(`${base}/api/attention`, { headers }).then((respon
 assert.ok(Array.isArray(attention.items));
 const integrations = await fetch(`${base}/api/integrations`, { headers }).then((response) => response.json());
 assert.equal(typeof integrations.google.configured, "boolean");
+assert.equal(typeof integrations.notion.configured, "boolean");
+
+const context = await fetch(`${base}/api/context`, { headers }).then((response) => response.json());
+assert.ok(context.sources);
 const page = await fetch(base).then((response) => response.text());
 assert.match(page, /Wealth Dojo Operations/);
 console.log("Smoke test passed: health, state, attention, integrations, and dashboard are available.");
