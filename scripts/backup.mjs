@@ -6,5 +6,5 @@ try {
   if (!destination) throw new Error("BACKUP_DIR is not configured");
   console.log(`Backup completed: ${destination}`);
 } finally {
-  closeDatabase();
+  await closeDatabase();
 }

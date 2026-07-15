@@ -15,40 +15,49 @@ function isoWeek(date = new Date()) {
   return `${utc.getUTCFullYear()}-W${Math.ceil(((utc - yearStart) / 86400000 + 1) / 7)}`;
 }
 
-async function tick() {
+export async function runScheduledOperations() {
   return withActor("system:scheduler", async () => {
+    const result = { weeklyReport: false, dailyDigest: false, eventbriteSync: false, backup: false };
     try {
-    // Weekly report every Monday.
-    if (new Date().getDay() === 1 && getKV("scheduler:weeklyReport") !== isoWeek()) {
+    // One report per ISO week. On sleeping free services, generate it on the
+    // first scheduled wake or operator request instead of requiring Monday uptime.
+    if (getKV("scheduler:weeklyReport") !== isoWeek()) {
       generateWeeklyReport();
       setKV("scheduler:weeklyReport", isoWeek());
+      result.weeklyReport = true;
     }
     // Daily attention digest in the activity log.
     if (getKV("scheduler:dailyDigest") !== today()) {
       const attention = getAttention();
       if (attention.items.length) createDigestEntry(attention);
       setKV("scheduler:dailyDigest", today());
+      result.dailyDigest = true;
     }
     // Hourly Eventbrite ticket sync when connected.
     const lastSync = getKV("scheduler:eventbrite");
     if (eventbrite.isConfigured() && (!lastSync || Date.now() - new Date(lastSync).getTime() > 3600000)) {
       await eventbrite.syncTickets();
       setKV("scheduler:eventbrite", new Date().toISOString());
+      result.eventbriteSync = true;
     }
     if (process.env.BACKUP_DIR && getKV("scheduler:backup") !== today()) {
       await runBackup();
       setKV("scheduler:backup", today());
+      result.backup = true;
     }
     } catch (error) {
       console.error(JSON.stringify({ level: "error", event: "scheduler_error", message: error.message }));
+      throw error;
     }
+    return result;
   });
 }
 
 export function startScheduler() {
   if (process.env.SCHEDULER === "off") return null;
-  tick();
-  const timer = setInterval(tick, 5 * 60 * 1000);
+  const invoke = () => { void runScheduledOperations().catch(() => {}); };
+  invoke();
+  const timer = setInterval(invoke, 5 * 60 * 1000);
   timer.unref();
   return timer;
 }

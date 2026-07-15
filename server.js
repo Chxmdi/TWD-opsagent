@@ -23,10 +23,10 @@ import {
   verifyMcpRequest
 } from "./auth.js";
 import { isProduction, publicBaseUrl, validateConfiguration } from "./config.js";
-import { closeDatabase, databaseReady } from "./db.js";
+import { closeDatabase, databaseMode, databaseReady, flushDatabase } from "./db.js";
 import { withActor } from "./request-context.js";
 import { createOperationsMcpServer } from "./mcp.js";
-import { startScheduler } from "./scheduler.js";
+import { runScheduledOperations, startScheduler } from "./scheduler.js";
 import * as buffer from "./integrations/buffer.js";
 import * as eventbrite from "./integrations/eventbrite.js";
 import * as google from "./integrations/google.js";
@@ -139,6 +139,15 @@ function legacyAuthorized(req) {
   const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function secretAuthorized(req, secret) {
+  if (!secret) return false;
+  const header = req.headers.authorization || "";
+  const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const a = Buffer.from(provided);
+  const b = Buffer.from(secret);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
@@ -382,6 +391,10 @@ const httpServer = createServer(async (req, res) => {
       res.setHeader("retry-after", "60");
       return json(res, 429, { error: "Too many requests" });
     }
+    if (pathname === "/internal/scheduler" && req.method === "POST") {
+      if (!secretAuthorized(req, process.env.CRON_SECRET)) return json(res, 401, { error: "Scheduler authorization required" });
+      return json(res, 200, { ok: true, ...(await runScheduledOperations()) });
+    }
 
     if (pathname === "/auth/login" && req.method === "GET") return beginDashboardLogin(req, url, res);
     if (pathname === "/auth/login" && req.method === "POST") return finishDashboardLogin(req, res);
@@ -443,12 +456,18 @@ const httpServer = createServer(async (req, res) => {
       const message = isProduction() && status >= 500 ? "Internal server error" : error.message || "Internal server error";
       json(res, status, { error: message, requestId });
     }
+  } finally {
+    try {
+      await flushDatabase();
+    } catch (error) {
+      console.error(JSON.stringify({ level: "error", event: "database_flush_error", requestId, path: pathname, message: error.message }));
+    }
   }
 });
 
 let scheduler;
 httpServer.listen(port, "0.0.0.0", () => {
-  console.log(JSON.stringify({ level: "info", event: "started", service: "wealth-dojo-operations", port, baseUrl: publicBaseUrl(), dashboardAuth: dashboardAuthConfigured(), mcpAuth: mcpOAuthConfigured() }));
+  console.log(JSON.stringify({ level: "info", event: "started", service: "wealth-dojo-operations", port, baseUrl: publicBaseUrl(), database: databaseMode(), dashboardAuth: dashboardAuthConfigured(), mcpAuth: mcpOAuthConfigured() }));
   scheduler = startScheduler();
 });
 
@@ -463,9 +482,15 @@ function shutdown(signal) {
     process.exit(1);
   }, 25000);
   deadline.unref();
-  httpServer.close(() => {
+  httpServer.close(async () => {
     clearTimeout(deadline);
-    closeDatabase();
+    try {
+      await flushDatabase();
+      await closeDatabase();
+    } catch (error) {
+      console.error(JSON.stringify({ level: "error", event: "shutdown_database_error", message: error.message }));
+      process.exit(1);
+    }
     process.exit(0);
   });
 }

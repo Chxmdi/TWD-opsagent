@@ -3,32 +3,26 @@ services:
     name: wealth-dojo-operations
     runtime: node
     region: ohio
-    plan: starter
+    plan: free
     numInstances: 1
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
     maxShutdownDelaySeconds: 30
-    disk:
-      name: wealth-dojo-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DB_PATH
-        value: /var/data/operations.db
-      - key: BACKUP_DIR
-        value: /var/data/backups
-      - key: BACKUP_RETENTION_DAYS
-        value: 14
       - key: SCHEDULER
-        value: on
+        value: "on"
       - key: OPENAI_MODEL
         value: gpt-5.4
       - key: MCP_REQUIRED_SCOPES
         value: operations:read operations:write
       - key: OPENAI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: CRON_SECRET
         sync: false
       - key: PUBLIC_BASE_URL
         sync: false

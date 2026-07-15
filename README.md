@@ -18,7 +18,7 @@ A shared operations backend powering both a standalone dashboard and a ChatGPT A
 
 **Platform**
 
-- SQLite storage (`better-sqlite3`) with actor-aware audit history, daily coherent backups, and one-click undo
+- Neon PostgreSQL storage in hosted production, with local SQLite for development, actor-aware audit history, scheduled exports, and one-click undo
 - Built-in single-user login for the production dashboard and built-in OAuth 2.1/PKCE protection for ChatGPT
 - Agent conversation memory: follow-up messages build on the same session
 - Approval-to-send pipeline: drafts move Needs approval → Approved → Sent; only a person can approve or send
@@ -39,7 +39,7 @@ npm start
 
 Open `http://localhost:8787`.
 
-`npm start` automatically loads `.env.local`. The app runs in safe demo mode without an API key and switches to the live OpenAI agent when `OPENAI_API_KEY` is present. Existing `data/runtime.json` files from older versions are imported into SQLite automatically on first boot.
+`npm start` automatically loads `.env.local`. The app runs in safe demo mode without an API key and switches to the live OpenAI agent when `OPENAI_API_KEY` is present. It uses Neon PostgreSQL when `DATABASE_URL` is present and local SQLite otherwise. Existing `data/runtime.json` files from older versions are imported into SQLite automatically on first local boot.
 
 ## Validate
 
@@ -76,7 +76,7 @@ Set `BUFFER_TOKEN` and `BUFFER_PROFILE_ID` to queue content-calendar entries as 
 
 ## Deploy privately
 
-Use the included `render.yaml` for a single-instance Render deployment with a persistent disk, health checks, graceful shutdown, automatic backups, and a generated OAuth signing secret. Follow [PRODUCTION.md](./PRODUCTION.md) for the single-user Render and private ChatGPT connection steps. No external identity provider is required.
+Use the included `render.yaml` for a Render Free web service backed by Neon Free PostgreSQL. Scheduled GitHub Actions wake the service and export the operations database. Follow [PRODUCTION_DEPLOYMENT_GUIDE.md](./PRODUCTION_DEPLOYMENT_GUIDE.md) for the complete setup. No external identity provider is required.
 
 ## Connect to ChatGPT
 
