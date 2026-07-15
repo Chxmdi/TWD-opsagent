@@ -1,5 +1,5 @@
 let state;
-let integrations = { google: {}, eventbrite: {}, buffer: {} };
+let integrations = { google: {}, notion: {}, eventbrite: {}, buffer: {}, context: {} };
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
 
@@ -113,8 +113,12 @@ async function renderIntegrations() {
     integrations = await request("/api/integrations");
   } catch { return; }
   const google = integrations.google;
+  const notion = integrations.notion;
+  const refreshed = integrations.context?.refreshedAt ? relativeTime(integrations.context.refreshedAt) : "not yet";
   const chip = (ok, text) => `<span class="badge ${ok ? "ok" : ""}">${ok ? "●" : "○"} ${text}</span>`;
   $("#integrations-panel").innerHTML = `
+    <div class="integration"><div><h3>Connected context — automatic refresh</h3><p class="subtle">Last refreshed ${refreshed}. On startup, the app refreshes Notion, Gmail summaries, Calendar, Drive, and Eventbrite. Neon remains the durable cache and audit store.</p></div><button class="draft-button" id="refresh-context">Refresh all</button></div>
+    <div class="integration"><div><h3>Notion — tasks, projects, planning context</h3><p class="subtle">${notion.configured ? "Configured. Canonical TWD tasks and projects synchronize on refresh; app-created tasks write back to Notion." : "Set NOTION_API_KEY and share the canonical TWD pages with the Notion connection."}</p></div>${chip(notion.configured, notion.configured ? "Connected" : "Not configured")}</div>
     <div class="integration"><div><h3>Google — Gmail, Calendar, Drive</h3><p class="subtle">${google.connected ? `Connected as ${google.email || "your account"}. Approved drafts can send; milestones sync to Calendar; docs export to Drive.` : google.configured ? "Configured — connect your account to enable sending, Calendar, and Drive." : "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local to enable."}</p></div>${google.connected ? chip(true, "Connected") : google.configured ? `<a class="draft-button" href="/auth/google">Connect Google</a>` : chip(false, "Not configured")}</div>
     <div class="integration"><div><h3>Eventbrite — live ticket counts</h3><p class="subtle">${integrations.eventbrite.configured ? "Configured. Tickets sync hourly; you can also sync now." : "Set EVENTBRITE_TOKEN and EVENTBRITE_EVENT_ID to pull real ticket sales."}</p></div>${integrations.eventbrite.configured ? `<button class="draft-button" id="sync-tickets">Sync now</button>` : chip(false, "Not configured")}</div>
     <div class="integration"><div><h3>Buffer — content queue</h3><p class="subtle">${integrations.buffer.configured ? "Configured. Queue content-calendar entries from the Marketing view." : "Set BUFFER_TOKEN and BUFFER_PROFILE_ID to queue planned posts."}</p></div>${chip(integrations.buffer.configured, integrations.buffer.configured ? "Ready" : "Not configured")}</div>`;
@@ -370,6 +374,14 @@ document.addEventListener("click", async (event) => {
     try { const result = await request("/api/integrations/eventbrite/sync", { method: "POST", body: "{}" }); await refresh(); toast(`Tickets synced: ${result.ticketsSold} sold`); }
     catch (error) { toast(error.message); }
   }
+  if (event.target.closest("#refresh-context")) {
+    try {
+      toast("Refreshing connected context…");
+      await request("/api/context/refresh", { method: "POST", body: JSON.stringify({ force: true }) });
+      await Promise.all([renderIntegrations(), refresh()]);
+      toast("Notion, Google, and Eventbrite context refreshed");
+    } catch (error) { toast(error.message); }
+  }
 
   const draft = event.target.closest("[data-draft]");
   if (draft) { await request("/api/outreach/draft", { method: "POST", body: JSON.stringify({ sponsorId: draft.dataset.draft }) }); await refresh(); showView("outreach"); toast("Draft created — needs approval"); }
@@ -501,4 +513,7 @@ if (params.get("google") === "connected") {
   history.replaceState({}, "", "/");
 }
 
-renderIntegrations().then(refresh).catch((error) => { console.error(error); toast("Could not load operations data"); });
+request("/api/context/refresh", { method: "POST", body: JSON.stringify({ force: true }) })
+  .catch((error) => console.warn("Connected context refresh failed", error))
+  .then(() => Promise.all([renderIntegrations(), refresh()]))
+  .catch((error) => { console.error(error); toast("Could not load operations data"); });
