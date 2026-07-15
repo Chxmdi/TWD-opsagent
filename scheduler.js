@@ -1,7 +1,7 @@
 import { getKV, setKV } from "./db.js";
 import { runBackup } from "./backup.js";
 import { withActor } from "./request-context.js";
-import * as eventbrite from "./integrations/eventbrite.js";
+import { refreshConnectedContext } from "./context-sync.js";
 import { createDigestEntry, generateWeeklyReport, getAttention } from "./store.js";
 
 function today() {
@@ -17,7 +17,7 @@ function isoWeek(date = new Date()) {
 
 export async function runScheduledOperations() {
   return withActor("system:scheduler", async () => {
-    const result = { weeklyReport: false, dailyDigest: false, eventbriteSync: false, backup: false };
+    const result = { weeklyReport: false, dailyDigest: false, contextRefresh: false, backup: false };
     try {
     // One report per ISO week. On sleeping free services, generate it on the
     // first scheduled wake or operator request instead of requiring Monday uptime.
@@ -33,13 +33,8 @@ export async function runScheduledOperations() {
       setKV("scheduler:dailyDigest", today());
       result.dailyDigest = true;
     }
-    // Hourly Eventbrite ticket sync when connected.
-    const lastSync = getKV("scheduler:eventbrite");
-    if (eventbrite.isConfigured() && (!lastSync || Date.now() - new Date(lastSync).getTime() > 3600000)) {
-      await eventbrite.syncTickets();
-      setKV("scheduler:eventbrite", new Date().toISOString());
-      result.eventbriteSync = true;
-    }
+    await refreshConnectedContext();
+    result.contextRefresh = true;
     if (process.env.BACKUP_DIR && getKV("scheduler:backup") !== today()) {
       await runBackup();
       setKV("scheduler:backup", today());
