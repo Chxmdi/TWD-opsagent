@@ -12,6 +12,7 @@ import {
   trimCollection,
   updateRecord
 } from "./db.js";
+import * as notion from "./integrations/notion.js";
 
 function id(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -58,12 +59,78 @@ export function createTask(input) {
     area: input.area || "Operations",
     priority: input.priority || "Medium",
     status: "To do",
-    due: input.due || "This week"
+    due: input.due || "This week",
+    source: input.source || "app",
+    createdAt: input.createdAt || new Date().toISOString()
   }, "task", (task) => `Created task: ${task.title}`);
 }
 
 export function updateTask(taskId, changes) {
   return patch("tasks", taskId, changes, "task", (task) => `Updated task: ${task.title}`, "Task");
+}
+
+export function importNotionTasks(tasks) {
+  const localTasks = allRecords("tasks");
+  let created = 0;
+  let updated = 0;
+  for (const task of tasks) {
+    const existing = localTasks.find((item) => item.notionPageId === task.notionPageId)
+      || getRecord("tasks", `notion-${String(task.notionPageId).replace(/-/g, "")}`);
+    if (existing) {
+      updateRecord("tasks", existing.id, { ...existing, ...task, id: existing.id, notionSyncError: null }, existing, { history: false });
+      updated += 1;
+    } else {
+      insertRecord("tasks", { id: `notion-${String(task.notionPageId).replace(/-/g, "")}`, ...task }, { history: false });
+      created += 1;
+    }
+  }
+  return { created, updated };
+}
+
+export async function createSyncedTask(input) {
+  const task = createTask(input);
+  if (!notion.isConfigured()) return task;
+  try {
+    const page = await notion.createTask(task);
+    return updateTask(task.id, { notionPageId: page.id, notionUrl: page.url, notionLastSyncedAt: new Date().toISOString(), notionSyncError: null });
+  } catch (error) {
+    return updateTask(task.id, { notionSyncError: error.message });
+  }
+}
+
+export async function updateSyncedTask(taskId, changes) {
+  let task = updateTask(taskId, changes);
+  if (!notion.isConfigured()) return task;
+  try {
+    const page = task.notionPageId ? await notion.updateTask(task.notionPageId, task) : await notion.createTask(task);
+    task = updateTask(task.id, { notionPageId: page.id, notionUrl: page.url, notionLastSyncedAt: new Date().toISOString(), notionSyncError: null });
+  } catch (error) {
+    task = updateTask(task.id, { notionSyncError: error.message });
+  }
+  return task;
+}
+
+export async function syncPendingTasksToNotion() {
+  if (!notion.isConfigured()) return { synced: 0, failed: 0 };
+  let synced = 0;
+  let failed = 0;
+  for (const task of allRecords("tasks").filter((item) => item.source === "app" && !item.notionPageId)) {
+    try {
+      const page = await notion.createTask(task);
+      updateRecord("tasks", task.id, {
+        ...task,
+        notionPageId: page.id,
+        notionUrl: page.url,
+        notionLastSyncedAt: new Date().toISOString(),
+        notionSyncError: null
+      }, task, { history: false });
+      synced += 1;
+    } catch (error) {
+      updateRecord("tasks", task.id, { ...task, notionSyncError: error.message }, task, { history: false });
+      failed += 1;
+    }
+  }
+  return { synced, failed };
 }
 
 // Sponsors and outreach
@@ -262,7 +329,7 @@ export function convertActionItemsToTasks(meetingId) {
   const created = [];
   const actionItems = meeting.actionItems.map((action) => {
     if (action.converted) return action;
-    const task = insertRecord("tasks", { id: id("task"), title: action.text, area: "Operations", priority: "Medium", status: "To do", due: action.due || "This week", meetingId: meeting.id });
+    const task = insertRecord("tasks", { id: id("task"), title: action.text, area: "Operations", priority: "Medium", status: "To do", due: action.due || "This week", meetingId: meeting.id, source: "app", createdAt: new Date().toISOString() });
     created.push(task);
     return { ...action, converted: true };
   });

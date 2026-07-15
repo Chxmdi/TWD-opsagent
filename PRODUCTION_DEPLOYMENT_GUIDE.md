@@ -44,6 +44,7 @@ Prepare the following without pasting their values into chat or source code:
 | Name | Where it comes from | Where it is stored |
 |---|---|---|
 | `OPENAI_API_KEY` | OpenAI Platform project | Render secret |
+| `NOTION_API_KEY` | Notion internal integration | Render secret |
 | `DATABASE_URL` | Neon project connection string | Render secret and GitHub Actions secret |
 | `CRON_SECRET` | Random 32+ character value | Render secret and GitHub Actions secret |
 | `SINGLE_USER_EMAIL` | Your chosen login email | Render secret |
@@ -139,6 +140,7 @@ Enter these values when the Blueprint requests them:
 | Variable | Value |
 |---|---|
 | `OPENAI_API_KEY` | Existing OpenAI project API key |
+| `NOTION_API_KEY` | Notion internal-integration secret from Step 14 |
 | `DATABASE_URL` | Neon pooled PostgreSQL connection string |
 | `CRON_SECRET` | Random scheduler value from Step 4 |
 | `SINGLE_USER_EMAIL` | Your chosen operator email |
@@ -279,7 +281,18 @@ During a cold start:
 
 Neon stores the data independently, so a Render cold start does not erase it.
 
-## 14. Optional integrations
+## 14. Connected context and integrations
+
+### Notion
+
+1. Open <https://www.notion.so/profile/integrations> and create an internal integration named `Wealth Dojo Operations Agent`.
+2. Enable read, insert, and update content capabilities.
+3. Copy its secret directly into Render as `NOTION_API_KEY`; never paste it into chat or commit it.
+4. In Notion, share **TWD Operations Dashboard**, the canonical **TWD Tasks** and **TWD Projects** databases, and the planning pages with this integration.
+5. Add `NOTION_TASKS_DATA_SOURCE_ID`, `NOTION_PROJECTS_DATA_SOURCE_ID`, `NOTION_DEFAULT_PROJECT_PAGE_ID`, and `NOTION_CONTEXT_PAGE_IDS` directly in Render. Treat workspace object IDs as private configuration and do not commit them to a public repository.
+6. Redeploy, sign in, and select **Refresh all** in the Integrations panel.
+
+Neon remains the durable database and recovery layer. Notion supplies human-readable tasks, projects, and planning context. App-created task writes that fail remain in Neon and retry on the next refresh.
 
 ### Google
 
@@ -297,7 +310,7 @@ GOOGLE_CLIENT_SECRET
 GOOGLE_REDIRECT_URI=https://YOUR_ORIGIN/auth/google/callback
 ```
 
-Redeploy, sign in, and select **Connect Google**. All communications remain approval-gated.
+Redeploy, sign in, and select **Connect Google**. If Google was connected before this release, reconnect once to approve Gmail read-only access. The app stores email metadata and snippets for context, not attachments or complete mailbox bodies. All communications remain approval-gated.
 
 ### Eventbrite
 
@@ -395,10 +408,14 @@ Use the exact origin configured in `PUBLIC_BASE_URL`. Do not alternate between t
 - [ ] Neon Free project exists.
 - [ ] Render Blueprint uses the Free plan and has no disk.
 - [ ] Render has `DATABASE_URL` and `CRON_SECRET`.
+- [ ] Render has `NOTION_API_KEY`, and the canonical Notion pages are shared with the integration.
 - [ ] Startup log reports PostgreSQL mode.
 - [ ] `/ready` returns HTTP 200 with every field true.
 - [ ] Dashboard login works.
 - [ ] A task survives a redeploy.
+- [ ] **Refresh all** loads Notion context and a task created in the app appears in Notion.
+- [ ] Google was reconnected and Gmail, Calendar, and Drive show refreshed status.
+- [ ] Eventbrite manual sync succeeds.
 - [ ] GitHub Actions secrets are configured.
 - [ ] Manual scheduled workflow succeeds.
 - [ ] A 14-day database export artifact is created.

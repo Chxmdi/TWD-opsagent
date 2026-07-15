@@ -61,7 +61,16 @@ try {
   assert.ok(Array.isArray(attention.items));
   const integrations = await fetch(`${base}/api/integrations`).then((response) => response.json());
   assert.equal(typeof integrations.google.configured, "boolean");
+  assert.equal(typeof integrations.notion.configured, "boolean");
   assert.equal(integrations.auth, false);
+  const context = await post("/api/context/refresh", { force: true });
+  assert.ok(context.sources);
+  assert.equal(context.sources.notion.configured, false);
+
+  const task = await post("/api/tasks", { title: "Smoke synchronized task", area: "Operations", priority: "High", due: "2026-07-20" });
+  assert.equal(task.source, "app");
+  const updatedTask = await patch(`/api/tasks/${task.id}`, { status: "In progress" });
+  assert.equal(updatedTask.status, "In progress");
 
   // Core write routes.
   const volunteer = await post("/api/volunteers", { name: "Smoke Tester", role: "QA" });
@@ -131,13 +140,14 @@ try {
   const transport = new StreamableHTTPClientTransport(new URL(`${base}/mcp`));
   await client.connect(transport);
   const tools = await client.listTools();
-  for (const name of ["get_operations_overview", "get_attention_items", "create_sponsor_outreach_draft", "add_volunteer", "update_volunteer", "add_vendor", "update_vendor_status", "create_meeting_record", "convert_meeting_actions_to_tasks", "create_marketing_strategy", "create_marketing_campaign", "create_comms_draft", "add_run_of_show_slot", "log_feedback", "generate_weekly_operations_report"]) {
+  for (const name of ["get_operations_overview", "refresh_connected_context", "search_connected_context", "create_operations_task", "update_operations_task", "get_attention_items", "create_sponsor_outreach_draft", "add_volunteer", "update_volunteer", "add_vendor", "update_vendor_status", "create_meeting_record", "convert_meeting_actions_to_tasks", "create_marketing_strategy", "create_marketing_campaign", "create_comms_draft", "add_run_of_show_slot", "log_feedback", "generate_weekly_operations_report"]) {
     assert.ok(tools.tools.some((item) => item.name === name), `MCP tool ${name} should be registered`);
   }
   const overview = await client.callTool({ name: "get_operations_overview", arguments: {} });
   assert.ok(overview.structuredContent.tasks.length >= 1);
   assert.ok(overview.structuredContent.runOfShow.length >= 1);
   assert.ok(Array.isArray(overview.structuredContent.attention));
+  assert.ok(overview.structuredContent.connectedContext);
   await client.close();
 } finally {
   await stopServer(server);

@@ -1,12 +1,12 @@
 {
   "name": "wealth-dojo-operations-agent",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node --env-file-if-exists=.env.local server.js",
     "dev": "node --env-file-if-exists=.env.local --watch server.js",
-    "check": "node --check server.js && node --check auth.js && node --check config.js && node --check backup.js && node --check request-context.js && node --check agent.js && node --check mcp.js && node --check store.js && node --check db.js && node --check db-sqlite.js && node --check db-postgres.js && node --check scheduler.js && node --check integrations/google.js && node --check integrations/eventbrite.js && node --check integrations/buffer.js && node --check public/app.js && node --check scripts/backup.mjs && node --check scripts/backup-postgres.mjs && node --check tests/run-smoke.mjs && node --check tests/run-production-smoke.mjs",
+    "check": "node --check server.js && node --check auth.js && node --check config.js && node --check backup.js && node --check request-context.js && node --check agent.js && node --check mcp.js && node --check store.js && node --check context-sync.js && node --check db.js && node --check db-sqlite.js && node --check db-postgres.js && node --check scheduler.js && node --check integrations/notion.js && node --check integrations/google.js && node --check integrations/eventbrite.js && node --check integrations/buffer.js && node --check public/app.js && node --check scripts/backup.mjs && node --check scripts/backup-postgres.mjs && node --check tests/run-smoke.mjs && node --check tests/run-production-smoke.mjs",
     "smoke": "node tests/run-smoke.mjs",
     "smoke:production": "node tests/run-production-smoke.mjs",
     "backup": "node --env-file-if-exists=.env.local scripts/backup.mjs",

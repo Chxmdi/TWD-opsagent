@@ -1,9 +1,11 @@
 import { Agent, run, tool, webSearchTool } from "@openai/agents";
 import { z } from "zod";
 import { getSession, saveSession } from "./db.js";
+import { contextSummary, refreshConnectedContext, searchConnectedContext } from "./context-sync.js";
 import * as buffer from "./integrations/buffer.js";
 import * as eventbrite from "./integrations/eventbrite.js";
 import * as google from "./integrations/google.js";
+import * as notion from "./integrations/notion.js";
 import {
   addCalendarEntry,
   budgetGuardrails,
@@ -22,7 +24,7 @@ import {
   createRunOfShowSlot,
   createSponsor,
   createStrategy,
-  createTask,
+  createSyncedTask,
   createTouchpoint,
   createVendor,
   createVolunteer,
@@ -42,7 +44,7 @@ import {
   updateRunOfShowSlot,
   updateSponsor,
   updateStrategy,
-  updateTask,
+  updateSyncedTask,
   updateTouchpoint,
   updateVendor,
   updateVolunteer
@@ -62,7 +64,10 @@ const getOperations = tool({
   name: "get_operations_snapshot",
   description: "Get the full Wealth Dojo operations state: event, tasks, sponsors, outreach drafts, milestones, logistics, budget, volunteers, vendors, meetings, documents, run of show, attendee touchpoints, feedback, improvements, marketing strategies, campaigns, comms drafts, and reports. Call this first to look up IDs before updating anything.",
   parameters: z.object({}),
-  execute: safe(() => readState())
+  execute: safe(async () => {
+    await refreshConnectedContext();
+    return { ...readState(), connectedContext: contextSummary() };
+  })
 });
 
 const attentionSummary = tool({
@@ -83,14 +88,14 @@ const addTask = tool({
   name: "create_operations_task",
   description: "Create an internal operations task. This does not contact anyone.",
   parameters: z.object({ title: z.string(), area: z.enum(["Marketing", "Partnerships", "Reporting", "Operations", "Logistics", "Volunteers", "Vendors", "Attendee Experience"]), priority: z.enum(["Low", "Medium", "High"]), due: z.string() }),
-  execute: safe((input) => createTask(input))
+  execute: safe((input) => createSyncedTask(input))
 });
 
 const editTask = tool({
   name: "update_operations_task",
   description: "Update an internal task's status, priority, due date, or title.",
   parameters: z.object({ taskId: z.string(), status: z.enum(["To do", "In progress", "Done"]).nullable(), priority: z.enum(["Low", "Medium", "High"]).nullable(), due: z.string().nullable(), title: z.string().nullable() }),
-  execute: safe(({ taskId, ...changes }) => updateTask(taskId, changes))
+  execute: safe(({ taskId, ...changes }) => updateSyncedTask(taskId, changes))
 });
 
 const addSponsor = tool({
@@ -357,9 +362,23 @@ const sponsorPacket = tool({
 
 const integrationStatus = tool({
   name: "get_integration_status",
-  description: "Check which external integrations are configured and connected: Google (Gmail/Calendar/Drive), Eventbrite, Buffer.",
+  description: "Check which external integrations are configured and connected: Notion, Google (Gmail/Calendar/Drive), Eventbrite, and Buffer.",
   parameters: z.object({}),
-  execute: safe(() => ({ google: google.status(), eventbrite: eventbrite.status(), buffer: buffer.status() }))
+  execute: safe(() => ({ notion: notion.status(), google: google.status(), eventbrite: eventbrite.status(), buffer: buffer.status(), context: contextSummary() }))
+});
+
+const refreshContext = tool({
+  name: "refresh_connected_context",
+  description: "Refresh Notion tasks/projects/planning pages, recent Gmail metadata, upcoming Calendar events, app-created Drive files, and Eventbrite ticket information. Use this before time-sensitive status summaries.",
+  parameters: z.object({}),
+  execute: safe(() => refreshConnectedContext({ force: true }))
+});
+
+const searchContext = tool({
+  name: "search_connected_context",
+  description: "Search the latest synchronized Notion, Gmail, Calendar, Drive, Eventbrite, and operations context for a person, organization, task, topic, or event detail.",
+  parameters: z.object({ query: z.string(), limit: z.number().min(1).max(25).default(12) }),
+  execute: safe(({ query, limit }) => ({ results: searchConnectedContext(query, limit) }))
 });
 
 const calendarEvent = tool({
@@ -410,7 +429,7 @@ function buildAgent() {
 8. Administration and continuous improvement — improvement backlog and a clean operational record.
 9. Marketing — research audiences and channels with web search, then build strategies (audience, positioning, channels, budget, KPIs) and campaigns with content calendars.
 
-Integrations: Google (Gmail/Calendar/Drive), Eventbrite, and Buffer may or may not be connected. Check get_integration_status when relevant; when a tool reports "not connected", tell the user exactly which credential to add rather than pretending it worked.
+Integrations: Notion, Google (Gmail/Calendar/Drive), Eventbrite, and Buffer may or may not be connected. Connected context refreshes automatically and can be refreshed manually. Search connected context before claiming that an email, Notion task, calendar event, Drive document, or ticket metric does or does not exist. When a tool reports "not connected", tell the user exactly which authorization is missing rather than pretending it worked.
 
 Working method: you have conversation memory within a session, so build on earlier turns instead of re-asking. Call get_operations_snapshot to ground yourself and find IDs before updates. When asked for a strategy or plan, produce the complete artifact and save it with the right tool.
 
@@ -440,7 +459,7 @@ Hard rules:
       addCampaign, editCampaign, addContent,
       draftComms,
       addRunOfShow, editRunOfShow, removeRunOfShow, checkConflicts, shiftPlan,
-      integrationStatus, calendarEvent, driveExport, ticketSync,
+      integrationStatus, refreshContext, searchContext, calendarEvent, driveExport, ticketSync,
       makeReport
     ]
   });
@@ -514,6 +533,7 @@ function demoReply(message) {
 }
 
 export async function runOperationsAgent(message, sessionId) {
+  await refreshConnectedContext().catch(() => {});
   const key = sessionId ? `agent:${sessionId}` : null;
   if (!process.env.OPENAI_API_KEY) {
     const reply = demoReply(message);

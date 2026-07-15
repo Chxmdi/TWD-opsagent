@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { registerAppResource, registerAppTool as registerBaseAppTool, RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { contextSummary, refreshConnectedContext, searchConnectedContext } from "./context-sync.js";
 import {
   convertActionItemsToTasks,
   createCampaign,
@@ -13,7 +14,7 @@ import {
   createMeeting,
   createRunOfShowSlot,
   createStrategy,
-  createTask,
+  createSyncedTask,
   createVendor,
   createVolunteer,
   detectRunOfShowConflicts,
@@ -21,6 +22,7 @@ import {
   getAttention,
   readState,
   updateSponsor,
+  updateSyncedTask,
   updateVendor,
   updateVolunteer
 } from "./store.js";
@@ -51,7 +53,8 @@ function snapshot() {
     campaigns: state.campaigns.slice(0, 3),
     commsDrafts: state.commsDrafts.slice(0, 5),
     reports: state.reports.slice(0, 3),
-    attention: getAttention().items
+    attention: getAttention().items,
+    connectedContext: contextSummary()
   };
 }
 
@@ -78,8 +81,8 @@ function registerAppTool(server, name, definition, handler) {
 
 export function createOperationsMcpServer() {
   const server = new McpServer(
-    { name: "wealth-dojo-operations", version: "1.1.0" },
-    { instructions: "Full Experience Operations Coordinator workspace for The Wealth Dojo Experience | RESET. Use the overview before updates and confirm IDs from it. All outreach, volunteer, attendee, and vendor communications are drafts only; nothing is sent externally. Vendor bookings and spending require human approval." }
+    { name: "wealth-dojo-operations", version: "1.3.0" },
+    { instructions: "Full Experience Operations Coordinator workspace for The Wealth Dojo Experience | RESET. The overview refreshes synchronized Notion, Gmail, Calendar, Drive, and Eventbrite context. Use it before updates and confirm IDs from it. All outreach, volunteer, attendee, and vendor communications are drafts only; nothing is sent externally. Vendor bookings and spending require human approval." }
   );
 
   registerAppResource(server, "wealth-dojo-operations-widget", widgetUri, {}, async () => ({
@@ -99,8 +102,33 @@ export function createOperationsMcpServer() {
     description: "Use this when the user wants to review Wealth Dojo operations: tasks, sponsors, milestones, logistics, budget, volunteers, vendors, meetings, documents, attendee experience, marketing, drafts, or reports. Also use it to look up IDs before updating records.",
     inputSchema: {},
     _meta: { ...commonMeta, "openai/toolInvocation/invoking": "Loading operations…", "openai/toolInvocation/invoked": "Operations ready" },
+    annotations: { readOnlyHint: true, openWorldHint: true, destructiveHint: false, idempotentHint: true }
+  }, async () => {
+    await refreshConnectedContext();
+    return reply("Here is the current Wealth Dojo operations snapshot, including synchronized external context.");
+  });
+
+  registerAppTool(server, "refresh_connected_context", {
+    title: "Refresh connected context",
+    description: "Use this when the user wants the latest Notion tasks/projects, Gmail message summaries, Calendar events, Drive files, and Eventbrite ticket information.",
+    inputSchema: {},
+    _meta: { ...commonMeta, "openai/toolInvocation/invoking": "Refreshing connected sources…", "openai/toolInvocation/invoked": "Connected context refreshed" },
+    annotations: { readOnlyHint: true, openWorldHint: true, destructiveHint: false, idempotentHint: true }
+  }, async () => {
+    await refreshConnectedContext({ force: true });
+    return reply("Refreshed the connected Notion, Google, and Eventbrite context.");
+  });
+
+  registerAppTool(server, "search_connected_context", {
+    title: "Search connected context",
+    description: "Use this when the user wants to find a person, organization, task, email, calendar event, Drive file, planning detail, or Eventbrite detail across synchronized sources.",
+    inputSchema: { query: z.string().min(1), limit: z.number().min(1).max(25).default(12) },
+    _meta: commonMeta,
     annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false, idempotentHint: true }
-  }, async () => reply("Here is the current Wealth Dojo operations snapshot."));
+  }, async ({ query, limit }) => ({
+    content: [{ type: "text", text: `Found synchronized context for “${query}”.` }],
+    structuredContent: { ...snapshot(), contextResults: searchConnectedContext(query, limit) }
+  }));
 
   registerAppTool(server, "create_operations_task", {
     title: "Create operations task",
@@ -109,8 +137,19 @@ export function createOperationsMcpServer() {
     _meta: commonMeta,
     annotations: writeAnnotations
   }, async (args) => {
-    const task = createTask(args);
+    const task = await createSyncedTask(args);
     return reply(`Created internal task “${task.title}”.`);
+  });
+
+  registerAppTool(server, "update_operations_task", {
+    title: "Update operations task",
+    description: "Use this when the user wants to update a known task. Notion-backed tasks are written through to the canonical TWD Tasks database.",
+    inputSchema: { taskId: z.string(), status: z.enum(["To do", "In progress", "Done"]).optional(), priority: z.enum(["Low", "Medium", "High"]).optional(), due: z.string().optional(), title: z.string().optional() },
+    _meta: commonMeta,
+    annotations: { ...writeAnnotations, idempotentHint: true }
+  }, async ({ taskId, ...changes }) => {
+    const task = await updateSyncedTask(taskId, changes);
+    return reply(`Updated task “${task.title}”.`);
   });
 
   registerAppTool(server, "update_sponsor_stage", {

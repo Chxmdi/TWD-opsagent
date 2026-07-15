@@ -3,6 +3,7 @@ import { deleteToken, getKV, getToken, saveToken, setKV } from "../db.js";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/userinfo.email"
@@ -27,7 +28,15 @@ export function isConnected() {
 }
 
 export function status() {
-  return { configured: isConfigured(), connected: isConnected(), email: getToken("google")?.email || null };
+  const token = getToken("google");
+  const scopes = String(token?.scope || "").split(/\s+/).filter(Boolean);
+  return {
+    configured: isConfigured(),
+    connected: isConnected(),
+    email: token?.email || null,
+    gmailRead: scopes.includes("https://www.googleapis.com/auth/gmail.readonly") || scopes.includes("https://mail.google.com/"),
+    lastSync: getKV("googleContext")?.syncedAt || null
+  };
 }
 
 export function getAuthUrl() {
@@ -83,6 +92,7 @@ export async function handleCallback(code, state) {
     refresh_token: tokens.refresh_token,
     access_token: tokens.access_token,
     expires_at: Date.now() + (tokens.expires_in || 3600) * 1000,
+    scope: tokens.scope || SCOPES,
     email
   });
   return { email };
@@ -98,7 +108,7 @@ async function accessToken() {
   if (stored.access_token && stored.expires_at > Date.now() + 60000) return stored.access_token;
   const { clientId, clientSecret } = config();
   const refreshed = await tokenRequest({ refresh_token: stored.refresh_token, client_id: clientId, client_secret: clientSecret, grant_type: "refresh_token" });
-  saveToken("google", { ...stored, access_token: refreshed.access_token, expires_at: Date.now() + (refreshed.expires_in || 3600) * 1000 });
+  saveToken("google", { ...stored, access_token: refreshed.access_token, expires_at: Date.now() + (refreshed.expires_in || 3600) * 1000, scope: refreshed.scope || stored.scope });
   return refreshed.access_token;
 }
 
@@ -168,4 +178,88 @@ export async function uploadDoc({ title, markdown }) {
     body: multipart
   });
   return { fileId: result.id, link: result.webViewLink };
+}
+
+function header(message, name) {
+  return (message.payload?.headers || []).find((item) => item.name?.toLowerCase() === name.toLowerCase())?.value || "";
+}
+
+export async function syncRecentMessages() {
+  if (!isConnected()) throw new Error("Google is not connected. Connect Google before refreshing Gmail context.");
+  const maxResults = Math.min(50, Math.max(1, Number(process.env.GMAIL_SYNC_LIMIT || 25)));
+  const query = process.env.GMAIL_SYNC_QUERY || "newer_than:30d";
+  const params = new URLSearchParams({ maxResults: String(maxResults), q: query });
+  const list = await googleApi(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`);
+  const messages = await Promise.all((list.messages || []).map(async ({ id }) => {
+    const metadata = new URLSearchParams({ format: "metadata" });
+    for (const name of ["From", "To", "Subject", "Date"]) metadata.append("metadataHeaders", name);
+    const message = await googleApi(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(id)}?${metadata}`);
+    return {
+      id: message.id,
+      threadId: message.threadId,
+      from: header(message, "From"),
+      to: header(message, "To"),
+      subject: header(message, "Subject") || "(no subject)",
+      date: header(message, "Date") || (message.internalDate ? new Date(Number(message.internalDate)).toISOString() : null),
+      snippet: message.snippet || "",
+      labels: message.labelIds || [],
+      url: `https://mail.google.com/mail/u/0/#all/${message.id}`
+    };
+  }));
+  const context = { syncedAt: new Date().toISOString(), query, messages };
+  setKV("gmailContext", context);
+  return context;
+}
+
+export async function syncUpcomingEvents() {
+  if (!isConnected()) throw new Error("Google is not connected. Connect Google before refreshing Calendar context.");
+  const timeMin = new Date().toISOString();
+  const timeMax = new Date(Date.now() + Number(process.env.CALENDAR_SYNC_DAYS || 90) * 86400000).toISOString();
+  const params = new URLSearchParams({
+    timeMin,
+    timeMax,
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: String(Math.min(100, Math.max(1, Number(process.env.CALENDAR_SYNC_LIMIT || 50))))
+  });
+  const data = await googleApi(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`);
+  const context = {
+    syncedAt: new Date().toISOString(),
+    events: (data.items || []).map((event) => ({
+      id: event.id,
+      title: event.summary || "Untitled event",
+      description: event.description || "",
+      start: event.start?.dateTime || event.start?.date || null,
+      end: event.end?.dateTime || event.end?.date || null,
+      status: event.status || null,
+      attendees: (event.attendees || []).map((attendee) => attendee.email).filter(Boolean),
+      url: event.htmlLink || null
+    }))
+  };
+  setKV("calendarContext", context);
+  return context;
+}
+
+export async function syncDriveFiles() {
+  if (!isConnected()) throw new Error("Google is not connected. Connect Google before refreshing Drive context.");
+  const params = new URLSearchParams({
+    q: "trashed = false",
+    orderBy: "modifiedTime desc",
+    pageSize: String(Math.min(100, Math.max(1, Number(process.env.DRIVE_SYNC_LIMIT || 25)))),
+    fields: "files(id,name,mimeType,modifiedTime,webViewLink,description)"
+  });
+  const data = await googleApi(`https://www.googleapis.com/drive/v3/files?${params}`);
+  const context = {
+    syncedAt: new Date().toISOString(),
+    files: (data.files || []).map((file) => ({
+      id: file.id,
+      name: file.name,
+      mimeType: file.mimeType,
+      modifiedTime: file.modifiedTime || null,
+      description: file.description || "",
+      url: file.webViewLink || null
+    }))
+  };
+  setKV("driveContext", context);
+  return context;
 }
